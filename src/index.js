@@ -1,6 +1,12 @@
 import { render } from "react-dom";
-import Box from "./App";
+import { Provider } from 'react-redux';
+import store from './redux/store';
+import Home from "./App";
+
 
 render (
-    <Box />, document.querySelector("#content")
+    <Provider store={store}>
+        <Home />
+    </Provider>
+    , document.querySelector("#content")
 );
