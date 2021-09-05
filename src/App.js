@@ -2,7 +2,7 @@ import { useState, useEffect } from "react"
 
 import { useSelector, useDispatch } from 'react-redux';
 import { setDictionary, nextText, taskEnd } from './redux/action';
-
+import { dictionary } from "./dictionary.js";
 import { makeStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 
@@ -39,10 +39,15 @@ const styles = makeStyles(() => ({
 }));
 
 function Box() {
-    const dictKey = ["ROI", "ARP"];
-    const dictValue = ["return on investment", "address resolution protocol"];
+    const num = 10
+    const randomText = []
+    for(var i = 0;i < num;i++){
+        var item = dictionary[Math.floor(Math.random() * dictionary.length)]
+        randomText.push(item)
+    }
+    //const dictionary = [{abbre:"ROI", text:"return on investment"}, {abbre:"ARP", text:"address resolution protocol"}];
     const dispatch = useDispatch();
-    dispatch(setDictionary(dictKey, dictValue));
+    dispatch(setDictionary(randomText));
 
     return (
         <Text />
@@ -52,28 +57,25 @@ function Box() {
 function Text(){
     const count = useSelector(state => state.count);
     const textNum = useSelector(state => state.textNum);
-    const textKey = useSelector(state => state.textKey);
-    const textValue = useSelector(state => state.textValue);
+    const typeTexts = useSelector(state => state.typeTexts);
     const dispatch = useDispatch();
 
     const style = styles();
     const [abbreviation, setAbbre] = useState("");
     const [text, setText] = useState("");
-    const [len, setLen] = useState("");
+    const [textLen, setLen] = useState("");
     const [textIdx, setTextIdx] = useState(0);
-    const [textEnd, setTextEnd] = useState(len);
     const [finished, setFinish] = useState(false);
     const [started, setStart] = useState(false);
     const [missed, setMissed] = useState(false);
     const [loading, setLoading] = useState(true);
 
     const initState = () => {
-        setAbbre(textKey[0]);
-        const initText = textValue[0];
+        setAbbre(typeTexts[0].abbre);
+        const initText = typeTexts[0].text;
         setText(initText);
         setLen(initText.length);
         setTextIdx(0);
-        setTextEnd(initText.length);
         setFinish(false);
         setStart(true);
         setMissed(false);
@@ -85,43 +87,31 @@ function Text(){
         setLoading(false);
     }, [])
 
+    const setNext = (count) => {
+        const nextText = typeTexts[count].text;
+        setAbbre(typeTexts[count].abbre);
+        setText(nextText);
+        setLen(nextText.length);
+        setTextIdx(0);
+    }
     const checkKey = (e) => {
-        if (finished) {
-            console.log("finished");
-            return;
-        }
         if (e.key === text[textIdx]) {
             const newIdx = textIdx + 1;
             setTextIdx(newIdx);
-            if (newIdx === len){
-                console.log("finished");
+            if (newIdx === textLen){
                 dispatch(nextText);
-                if (count + 1 >= textNum) {
-                    dispatch(taskEnd);
+                if (isTaskEnd()) {
                     setFinish(true);
                     return;
                 }
-                const newCount = count + 1;
-                console.log("update", count);
-                setAbbre(textKey[newCount]);
-                const value = textValue[newCount];
-                setText(value);
-                setLen(value.length);
-                setTextIdx(0);
-                setTextEnd(value.length);
+                setNext(count + 1);
             }
         }
     }
 
     const isTaskEnd = () => {
-        console.log("count", count, textNum);
-        if (count == textNum){
-            dispatch(taskEnd);
-        }
-        return;
+        return count + 1 == textNum;
     }
-
-    console.log("count", count)
 
     if (finished){
         return (
@@ -152,7 +142,6 @@ function Text(){
             </div>) : (
                 <div>
                     <p> Loading </p>
-                    { initState() }
                 </div>
             )
         );

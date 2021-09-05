@@ -4,11 +4,10 @@ export const ActionType = {
     taskEnd: "TASK_END",
 };
 
-export function setDictionary(key, value) {
+export function setDictionary(dictionary) {
     return {
         type: ActionType.setDictionary,
-        key: key,
-        value: value,
+        dictionary: dictionary,
     }
 }
 
