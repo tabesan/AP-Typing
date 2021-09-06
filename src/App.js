@@ -5,53 +5,84 @@ import { setDictionary, nextText, taskEnd } from './redux/action';
 import { dictionary } from "./dictionary.js";
 import { makeStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
+import Box from '@material-ui/core/Box';
 
 const styles = makeStyles(() => ({
     inputBox:{
-        padding: "30px",
+        paddingTop: "20px",
         marginBottom: "30px",
+        border: "3px solid #4169e1",
+        width: "75%",
+        height: "50px"
     },
     charGreen: {
         color: "#689f38",
         display: "inline",
         fontFamily: "Times New Roman",
-        fontsize: "50px"
+        fontsize: "50px",
+        fontWeight: "bold"
     },
     charRed: {
         background: "#e0e0e0",
         color: "red",
         display: "inline",
         fontFamily: "Times New Roman",
-        fontsize: "50px"
+        fontsize: "50px",
+        fontWeight: "bold"
     },
     charGrey: {
         color: "gray",
         display: "inline",
         fontFamily: "Times New Roman",
-        fontsize: "50px"
+        fontsize: "50px",
+        fontWeight: "bold"
     },
     charBlack: {
         color: "#e0e0e0",
         display: "inline",
         fontFamily: "Times New Roman",
-        fontsize: "50px"
+        fontsize: "50px",
+        fontWeight: "bold"
     }
 }));
 
-function Box() {
+function Board() {
+    const style = styles();
+    const [start, setStart] = useState(false);
     const num = 10
     const randomText = []
     for(var i = 0;i < num;i++){
         var item = dictionary[Math.floor(Math.random() * dictionary.length)]
         randomText.push(item)
     }
-    //const dictionary = [{abbre:"ROI", text:"return on investment"}, {abbre:"ARP", text:"address resolution protocol"}];
+
     const dispatch = useDispatch();
     dispatch(setDictionary(randomText));
+    
+    const startGame = (e) => {
+        console.log("start")
+        console.log(e.which)
+        if (e.which === 32 || e.keyCode === 32) {
+            setStart(true);
+        }
+        return;
+    }
 
-    return (
-        <Text />
-    )
+    if (!start) {
+        return (
+            <div align="center">
+                <div onKeyPress={(e) => startGame(e)} tabIndex={0} className={style.inputBox}>
+                    <Typography className={style.charBlack}>
+                        Press space key to start
+                    </Typography>
+                </div>
+            </div>
+        )
+    } else {
+        return (
+            <Text />
+        )
+    }
 }
 
 function Text(){
@@ -95,7 +126,7 @@ function Text(){
         setTextIdx(0);
     }
     const checkKey = (e) => {
-        if (e.key === text[textIdx]) {
+        if (e.key === text[textIdx].toLowerCase() || e.key === text[textIdx]) {
             const newIdx = textIdx + 1;
             setTextIdx(newIdx);
             if (newIdx === textLen){
@@ -123,7 +154,7 @@ function Text(){
             <div align="center">
                 <p> {abbreviation}</p>
                 <div onKeyPress={(e) => checkKey(e)} tabIndex={0} className={style.inputBox}>
-                    <Typography className={style.charGreen}>
+                    <Typography className={style.charBlack}>
                         {text.slice(0, textIdx)}
                     </Typography>
                     {missed ? (
@@ -131,7 +162,7 @@ function Text(){
                             {text[textIdx]}
                         </Typography>
                     ) : (
-                        <Typography className={style.charBlack}>
+                        <Typography className={style.charGrey}>
                             {text[textIdx]}
                         </Typography>
                     )}
@@ -151,7 +182,7 @@ function Text(){
 function Home() {
     return (
         <div>
-            <Box />
+            <Board />
         </div>
     );
 }
