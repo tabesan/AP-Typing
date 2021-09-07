@@ -8,12 +8,19 @@ import Typography from '@material-ui/core/Typography';
 import Box from '@material-ui/core/Box';
 
 const styles = makeStyles(() => ({
-    inputBox:{
-        paddingTop: "20px",
-        marginBottom: "30px",
+    inputBox: {
         border: "3px solid #4169e1",
+        paddingTop: "20px",
+        paddingBottom: "20px",
+        marginBottom: "30px",
         width: "75%",
         height: "50px"
+    },
+    abbreviation: {
+        color: "#000000",
+        fontFamily: "Times New Roman",
+        fontsize: "70px",
+        fontWeight: "bold"
     },
     charGreen: {
         color: "#689f38",
@@ -23,7 +30,6 @@ const styles = makeStyles(() => ({
         fontWeight: "bold"
     },
     charRed: {
-        background: "#e0e0e0",
         color: "red",
         display: "inline",
         fontFamily: "Times New Roman",
@@ -35,21 +41,35 @@ const styles = makeStyles(() => ({
         display: "inline",
         fontFamily: "Times New Roman",
         fontsize: "50px",
-        fontWeight: "bold"
+        fontWeight: "bold",
     },
     charBlack: {
-        color: "#e0e0e0",
+        color: "#000000",
         display: "inline",
         fontFamily: "Times New Roman",
         fontsize: "50px",
         fontWeight: "bold"
+    },
+    currentChar: {
+        color: "#000000",
+        display: "inline",
+        fontFamily: "Times New Roman",
+        fontsize: "50px",
+        fontWeight: "bold",
+        backgroundColor: "#e0e0e0",
+    },
+    result: {
+        color: "#000000",
+        display: "inline",
+        fontFamily: "Times New Roman",
+        fontsize: "70px",
+        fontWeight: "bold",
     }
 }));
 
 function Board() {
     const style = styles();
-    const [start, setStart] = useState(false);
-    const num = 10
+    const num = 5
     const randomText = []
     for(var i = 0;i < num;i++){
         var item = dictionary[Math.floor(Math.random() * dictionary.length)]
@@ -58,31 +78,10 @@ function Board() {
 
     const dispatch = useDispatch();
     dispatch(setDictionary(randomText));
-    
-    const startGame = (e) => {
-        console.log("start")
-        console.log(e.which)
-        if (e.which === 32 || e.keyCode === 32) {
-            setStart(true);
-        }
-        return;
-    }
 
-    if (!start) {
-        return (
-            <div align="center">
-                <div onKeyPress={(e) => startGame(e)} tabIndex={0} className={style.inputBox}>
-                    <Typography className={style.charBlack}>
-                        Press space key to start
-                    </Typography>
-                </div>
-            </div>
-        )
-    } else {
-        return (
-            <Text />
-        )
-    }
+    return (
+        <Text />
+    )
 }
 
 function Text(){
@@ -100,6 +99,22 @@ function Text(){
     const [started, setStart] = useState(false);
     const [missed, setMissed] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [correctType, setCorrect] = useState(0);
+    const [missType, setMissType] = useState(0);
+
+    useEffect(() => {
+        setLoading(true);
+        initState();
+        setLoading(false);
+    }, [])
+
+    const startGame = (e) => {
+        console.log("startGame")
+        if (e.which === 32 || e.keyCode === 32) {
+            setStart(true);
+        }
+        return;
+    }
 
     const initState = () => {
         setAbbre(typeTexts[0].abbre);
@@ -108,15 +123,8 @@ function Text(){
         setLen(initText.length);
         setTextIdx(0);
         setFinish(false);
-        setStart(true);
         setMissed(false);
     }
-
-    useEffect(() => {
-        setLoading(true);
-        initState();
-        setLoading(false);
-    }, [])
 
     const setNext = (count) => {
         const nextText = typeTexts[count].text;
@@ -125,10 +133,15 @@ function Text(){
         setLen(nextText.length);
         setTextIdx(0);
     }
+
     const checkKey = (e) => {
-        if (e.key === text[textIdx].toLowerCase() || e.key === text[textIdx]) {
+        if (e.keyCode === 27 || e.which === 27) {
+            setStart(false)
+            return;
+        } else if (e.key === text[textIdx].toLowerCase() || e.key === text[textIdx]) {
             const newIdx = textIdx + 1;
             setTextIdx(newIdx);
+            setCorrect((correctType) => (correctType + 1));
             if (newIdx === textLen){
                 dispatch(nextText);
                 if (isTaskEnd()) {
@@ -137,6 +150,8 @@ function Text(){
                 }
                 setNext(count + 1);
             }
+        } else {
+            setMissType((missType) => (missType + 1));
         }
     }
 
@@ -146,15 +161,30 @@ function Text(){
 
     if (finished){
         return (
-            <div align="center"> clear </div>
+            <div align="center">
+                <div onKeyDown={(e) => checkKey(e)} tabIndex={0} className={style.inputBox}>
+                    <Box>
+                        <Typography className={style.result}>
+                            正しく打った回数: {correctType}
+                        </Typography>
+                    </Box>
+                    <Box marginTop={"10px"}>
+                        <Typography className={style.result}>
+                            間違って打った回数: {missType}
+                        </Typography>
+                    </Box>
+                </div>
+            </div>
         );
     } else {
         return (
             started ? (
             <div align="center">
-                <p> {abbreviation}</p>
-                <div onKeyPress={(e) => checkKey(e)} tabIndex={0} className={style.inputBox}>
-                    <Typography className={style.charBlack}>
+                <div onKeyDown={(e) => checkKey(e)} tabIndex={0} className={style.inputBox}>
+                    <Typography className={style.abbreviation}>
+                        {abbreviation }
+                    </Typography>
+                    <Typography className={style.charGrey}>
                         {text.slice(0, textIdx)}
                     </Typography>
                     {missed ? (
@@ -162,17 +192,23 @@ function Text(){
                             {text[textIdx]}
                         </Typography>
                     ) : (
-                        <Typography className={style.charGrey}>
+                        <Typography className={style.currentChar}>
                             {text[textIdx]}
                         </Typography>
                     )}
-                    <Typography className={style.charGrey}>
+                    <Typography className={style.charBlack}>
                         {text.slice(textIdx + 1, text.length)}
                     </Typography>
                 </div>
             </div>) : (
-                <div>
-                    <p> Loading </p>
+                <div align="center">
+                    <div onKeyPress={(e) => startGame(e)} tabIndex={0} className={style.inputBox}>
+                        <Box paddingTop={"10px"}>
+                            <Typography className={style.charBlack}>
+                                Press space key to start
+                            </Typography>
+                        </Box>
+                    </div>
                 </div>
             )
         );

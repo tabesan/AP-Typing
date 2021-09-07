@@ -167,7 +167,7 @@ const dictionary = [
     {"abbre":"POSシステム","text":"Point Of Sales","field":"ストラテジ系"},
     {"abbre":"PPM","text":"Products Portfolio Management","field":"ストラテジ系"},
     {"abbre":"PPP","text":"Point-to-Point Protocol","field":"テクノロジ系"},
-    {"abbre":"PTS法","text":"Predetermined Time Standard Sysytem","field":"ストラテジ系"},
+    {"abbre":"PTS法","text":"Predetermined Time Standard System","field":"ストラテジ系"},
     {"abbre":"PoE","text":"Power over Ethernet","field":"テクノロジ系"},
     {"abbre":"QC活動","text":"Quality Control","field":"ストラテジ系"},
     {"abbre":"RADIUS","text":"Remote Authentication Dial In User Service","field":"テクノロジ系"},
