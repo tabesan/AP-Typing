@@ -1,25 +1,38 @@
 import { useState, useEffect } from "react"
 
 import { useSelector, useDispatch } from 'react-redux';
-import { setDictionary, nextText, taskEnd } from './redux/action';
+import { setDictionary, nextText, startGame, renderTitle } from './redux/action';
 import { dictionary } from "./dictionary.js";
 import { makeStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 import Box from '@material-ui/core/Box';
+import Button from '@material-ui/core/Button';
 
 const styles = makeStyles(() => ({
-    inputBox: {
+    back: {
         border: "3px solid #4169e1",
         paddingTop: "20px",
         paddingBottom: "20px",
         marginBottom: "30px",
-        width: "75%",
+        width: "330px",
+        height: "50px"
+    },
+    title: {
+        fontSize: "75px",
+        fontFamily: "Segoe UI",
+        display: "inline",
+        color: "#008000",
+    },
+    inputBox: {
+        paddingBottom: "20px",
+        marginBottom: "30px",
+        width: "330px",
         height: "50px"
     },
     abbreviation: {
         color: "#000000",
         fontFamily: "Times New Roman",
-        fontsize: "70px",
+        fontsize: "80px",
         fontWeight: "bold"
     },
     charGreen: {
@@ -67,6 +80,15 @@ const styles = makeStyles(() => ({
     }
 }));
 
+function Title() {
+    const start = useSelector(state => state.startGame);
+    const dispatch = useDispatch();
+
+    return (    
+        <Button onClick={() => {dispatch(startGame);}} variant="contained"> Start </Button>
+    )
+}
+
 function Board() {
     const style = styles();
     const num = 5
@@ -80,7 +102,9 @@ function Board() {
     dispatch(setDictionary(randomText));
 
     return (
-        <Text />
+        <div align="center">
+            <Text />
+        </div>
     )
 }
 
@@ -109,7 +133,6 @@ function Text(){
     }, [])
 
     const startGame = (e) => {
-        console.log("startGame")
         if (e.which === 32 || e.keyCode === 32) {
             setStart(true);
         }
@@ -135,10 +158,10 @@ function Text(){
     }
 
     const checkKey = (e) => {
-        if (e.keyCode === 27 || e.which === 27) {
+        if (started && (e.keyCode === 27 || e.which === 27)) {
             setStart(false)
             return;
-        } else if (e.key === text[textIdx].toLowerCase() || e.key === text[textIdx]) {
+        } else if (!finished && (e.key === text[textIdx].toLowerCase() || e.key === text[textIdx])) {
             const newIdx = textIdx + 1;
             setTextIdx(newIdx);
             setCorrect((correctType) => (correctType + 1));
@@ -150,8 +173,10 @@ function Text(){
                 }
                 setNext(count + 1);
             }
-        } else {
+        } else if (!finished) {
             setMissType((missType) => (missType + 1));
+        } else if (finished && (e.keyCode === 32 || e.which === 32)) {
+            return;
         }
     }
 
@@ -161,54 +186,48 @@ function Text(){
 
     if (finished){
         return (
-            <div align="center">
-                <div onKeyDown={(e) => checkKey(e)} tabIndex={0} className={style.inputBox}>
-                    <Box>
-                        <Typography className={style.result}>
-                            正しく打った回数: {correctType}
-                        </Typography>
-                    </Box>
-                    <Box marginTop={"10px"}>
-                        <Typography className={style.result}>
-                            間違って打った回数: {missType}
-                        </Typography>
-                    </Box>
-                </div>
+            <div onKeyDown={(e) => checkKey(e)} tabIndex={0} className={style.inputBox}>
+                <Box>
+                    <Typography className={style.result}>
+                        正しく打った回数: {correctType}
+                    </Typography>
+                </Box>
+                <Box marginTop={"10px"}>
+                    <Typography className={style.result}>
+                        間違って打った回数: {missType}
+                    </Typography>
+                </Box>
             </div>
         );
     } else {
         return (
             started ? (
-            <div align="center">
-                <div onKeyDown={(e) => checkKey(e)} tabIndex={0} className={style.inputBox}>
-                    <Typography className={style.abbreviation}>
-                        {abbreviation }
+            <div onKeyDown={(e) => checkKey(e)} tabIndex={0} className={style.inputBox}>
+                <Typography className={style.abbreviation}>
+                    {abbreviation }
+                </Typography>
+                <Typography className={style.charGrey}>
+                    {text.slice(0, textIdx)}
+                </Typography>
+                {missed ? (
+                    <Typography className={style.charRed}>
+                        {text[textIdx]}
                     </Typography>
-                    <Typography className={style.charGrey}>
-                        {text.slice(0, textIdx)}
+                ) : (
+                    <Typography className={style.currentChar}>
+                        {text[textIdx]}
                     </Typography>
-                    {missed ? (
-                        <Typography className={style.charRed}>
-                            {text[textIdx]}
-                        </Typography>
-                    ) : (
-                        <Typography className={style.currentChar}>
-                            {text[textIdx]}
-                        </Typography>
-                    )}
-                    <Typography className={style.charBlack}>
-                        {text.slice(textIdx + 1, text.length)}
-                    </Typography>
-                </div>
+                )}
+                <Typography className={style.charBlack}>
+                    {text.slice(textIdx + 1, text.length)}
+                </Typography>
             </div>) : (
-                <div align="center">
-                    <div onKeyPress={(e) => startGame(e)} tabIndex={0} className={style.inputBox}>
-                        <Box paddingTop={"10px"}>
-                            <Typography className={style.charBlack}>
-                                Press space key to start
-                            </Typography>
-                        </Box>
-                    </div>
+                <div onKeyPress={(e) => startGame(e)} tabIndex={0} className={style.inputBox}>
+                    <Box paddingTop={"10px"}>
+                        <Typography className={style.charBlack}>
+                            Press space key to start
+                        </Typography>
+                    </Box>
                 </div>
             )
         );
@@ -216,11 +235,37 @@ function Text(){
 }
 
 function Home() {
+    const style = styles();
+    const start = useSelector(state => state.startGame);
+    console.log(start);
+
     return (
-        <div>
-            <Board />
+        <div align="center">
+            <Box className={style.title}>
+                AP TYPING
+            </Box>
+            <div className={style.back}>
+                {start ? (
+                    <Board />
+                ) : (
+                    <Title />
+                )}
+            </div>
         </div>
     );
+    /*if (!start) {
+        return (
+            <div align="center">
+                <Title />
+            </div>
+        );
+    } else {
+        return (
+            <div>
+                <Board />
+            </div>
+        );
+    }*/
 }
 
 export default Home;

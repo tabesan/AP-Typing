@@ -6,6 +6,7 @@ const initialState = {
     count: 0,
     textNum: 0,
     taskEnd: false,
+    startGame: false,
 };
 
 const reducer = (state = initialState, action) => {
@@ -24,6 +25,19 @@ const reducer = (state = initialState, action) => {
             return Object.assign({}, state, {
                 taskEnd: true,
             });
+        case ActionType.startGame:
+            return Object.assign({}, state, {
+                startGame: true,
+            });
+        case ActionType.renderTitle:
+            return Object.assign({}, state, {
+                startGame: false,
+            });
+        case ActionType.selectTextNum: {
+            return Object.assign({}, state, {
+                textNum: action.textNum,
+            })
+        }
         default:
             return state;
     }
