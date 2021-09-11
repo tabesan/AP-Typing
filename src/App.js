@@ -7,14 +7,31 @@ import { makeStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 import Box from '@material-ui/core/Box';
 import Button from '@material-ui/core/Button';
+import Grid from '@material-ui/core/Grid';
 
 const styles = makeStyles(() => ({
+    buttonFont: {
+        fontSize: "10px",
+    },
+    gridPosition: {
+        position: "relative",
+        left: "90px",
+    },
+    restartButton: {
+        position: "relative",
+        bottom: "20px",
+        paddingRight: "20px",
+    },
+    titleButton: {
+        position: "relative",
+        bottom: "20px",
+    },
     back: {
         border: "3px solid #4169e1",
         paddingTop: "20px",
         paddingBottom: "20px",
         marginBottom: "30px",
-        width: "330px",
+        width: "400px",
         height: "50px"
     },
     title: {
@@ -80,26 +97,8 @@ const styles = makeStyles(() => ({
     }
 }));
 
-function Title() {
-    const start = useSelector(state => state.startGame);
-    const dispatch = useDispatch();
-
-    return (    
-        <Button onClick={() => {dispatch(startGame);}} variant="contained"> Start </Button>
-    )
-}
-
 function Board() {
     const style = styles();
-    const num = 5
-    const randomText = []
-    for(var i = 0;i < num;i++){
-        var item = dictionary[Math.floor(Math.random() * dictionary.length)]
-        randomText.push(item)
-    }
-
-    const dispatch = useDispatch();
-    dispatch(setDictionary(randomText));
 
     return (
         <div align="center">
@@ -127,16 +126,26 @@ function Text(){
     const [missType, setMissType] = useState(0);
 
     useEffect(() => {
-        setLoading(true);
         initState();
-        setLoading(false);
-    }, [])
+        setLoading(() => (false));
+    }, [loading]);
 
     const startGame = (e) => {
         if (e.which === 32 || e.keyCode === 32) {
             setStart(true);
         }
         return;
+    }
+
+    const selectText = () => {
+        const num = 5;
+        const randomText = [];
+        for(var i = 0;i < num;i++){
+            var item = dictionary[Math.floor(Math.random() * dictionary.length)]
+            randomText.push(item);
+        }
+        dispatch(setDictionary(randomText));
+        setLoading(false);
     }
 
     const initState = () => {
@@ -159,7 +168,8 @@ function Text(){
 
     const checkKey = (e) => {
         if (started && (e.keyCode === 27 || e.which === 27)) {
-            setStart(false)
+            setLoading(true);
+            setStart(false);
             return;
         } else if (!finished && (e.key === text[textIdx].toLowerCase() || e.key === text[textIdx])) {
             const newIdx = textIdx + 1;
@@ -183,6 +193,7 @@ function Text(){
     const isTaskEnd = () => {
         return count + 1 == textNum;
     }
+
 
     if (finished){
         return (
@@ -222,34 +233,48 @@ function Text(){
                     {text.slice(textIdx + 1, text.length)}
                 </Typography>
             </div>) : (
-                <div onKeyPress={(e) => startGame(e)} tabIndex={0} className={style.inputBox}>
-                    <Box paddingTop={"10px"}>
-                        <Typography className={style.charBlack}>
-                            Press space key to start
-                        </Typography>
-                    </Box>
-                </div>
+                loading ? (
+                    <Typography className={style.charBlack}>
+                        Loading...
+                        {selectText()}
+                    </Typography>
+                ) : (
+                    <div onKeyPress={(e) => startGame(e)} tabIndex={0} className={style.inputBox}>
+                        <Box paddingTop={"10px"}>
+                            <Typography>
+                                Press space key to start
+                            </Typography>
+                        </Box>
+                    </div>
+                )
             )
         );
-    }
+    }    
 }
 
 function Home() {
     const style = styles();
     const start = useSelector(state => state.startGame);
     console.log(start);
-
     return (
         <div align="center">
             <Box className={style.title}>
                 AP TYPING
             </Box>
             <div className={style.back}>
-                {start ? (
+                <div>
                     <Board />
-                ) : (
-                    <Title />
-                )}
+                </div>
+                <div>
+                    <Grid container className={style.gridPosition} >
+                        <Grid className={style.restartButton}>
+                            <Button variant="contained" xs={10} className={style.buttonFont}> Restart </Button>
+                        </Grid>
+                        <Grid className={style.titleButton}>
+                            <Button variant="contained" className={style.buttonFont}> Select Course </Button>
+                        </Grid>
+                    </Grid>
+                </div>
             </div>
         </div>
     );

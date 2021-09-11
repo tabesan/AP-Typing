@@ -14,6 +14,7 @@ const reducer = (state = initialState, action) => {
         case ActionType.setDictionary:
             return Object.assign({}, state, {
                 typeTexts: action.dictionary,
+                count: 0,
                 textNum: action.dictionary.length,
                 taskEnd: false,
             });
