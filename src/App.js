@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 
 import { useSelector, useDispatch } from 'react-redux';
-import { setDictionary, nextText, startGame, renderTitle } from './redux/action';
+import { setDictionary, nextText, startGame, renderTitle, setCourse, resetCourse, restartGame } from './redux/action';
 import { dictionary } from "./dictionary.js";
 import { makeStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
@@ -10,12 +10,29 @@ import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 
 const styles = makeStyles(() => ({
-    buttonFont: {
-        fontSize: "10px",
+    box: {
+        width: "250px",
+        width: "352px",
+    },
+    start: {
+        paddingBottom: "20px",
+        marginTop: "30px",
+        //marginBottom: "30px",
+        width: "450px",
+        height: "40px",
+    },
+    course: {
+        alignItems: "center",
+        height: "90px",
+        marginTop: "10px",
+    },
+    textFont: {
+        fontSize: "20px",
     },
     gridPosition: {
+        marginTop: "30px",
         position: "relative",
-        left: "90px",
+        width: "400px",
     },
     restartButton: {
         position: "relative",
@@ -28,11 +45,11 @@ const styles = makeStyles(() => ({
     },
     back: {
         border: "3px solid #4169e1",
-        paddingTop: "20px",
-        paddingBottom: "20px",
-        marginBottom: "30px",
-        width: "400px",
-        height: "50px"
+        //paddingTop: "5px",
+        //paddingBottom: "20px",
+        //marginBottom: "30px",
+        width: "600px",
+        height: "110px"
     },
     title: {
         fontSize: "75px",
@@ -42,49 +59,51 @@ const styles = makeStyles(() => ({
     },
     inputBox: {
         paddingBottom: "20px",
-        marginBottom: "30px",
-        width: "330px",
-        height: "50px"
+        marginTop: "15px",
+        //marginBottom: "30px",
+        width: "450px",
+        height: "40px",
+        cursor: "none",
     },
     abbreviation: {
         color: "#000000",
         fontFamily: "Times New Roman",
-        fontsize: "80px",
+        fontSize: "20px",
         fontWeight: "bold"
     },
     charGreen: {
         color: "#689f38",
         display: "inline",
         fontFamily: "Times New Roman",
-        fontsize: "50px",
+        fontSize: "25px",
         fontWeight: "bold"
     },
     charRed: {
         color: "red",
         display: "inline",
         fontFamily: "Times New Roman",
-        fontsize: "50px",
+        fontSize: "25px",
         fontWeight: "bold"
     },
     charGrey: {
         color: "gray",
         display: "inline",
         fontFamily: "Times New Roman",
-        fontsize: "50px",
+        fontSize: "25px",
         fontWeight: "bold",
     },
     charBlack: {
         color: "#000000",
         display: "inline",
         fontFamily: "Times New Roman",
-        fontsize: "50px",
+        fontSize: "25px",
         fontWeight: "bold"
     },
     currentChar: {
         color: "#000000",
         display: "inline",
         fontFamily: "Times New Roman",
-        fontsize: "50px",
+        fontSize: "25px",
         fontWeight: "bold",
         backgroundColor: "#e0e0e0",
     },
@@ -99,18 +118,44 @@ const styles = makeStyles(() => ({
 
 function Board() {
     const style = styles();
+    const courseSelected = useSelector(state => state.selectCourse);
 
+    console.log("selected", courseSelected);
     return (
-        <div align="center">
-            <Text />
-        </div>
+        <Box>
+            {courseSelected ? (
+                <Text />
+            ) : (
+                <Course />
+            )}
+        </Box>
     )
+}
+
+function Course() {
+    const style = styles();
+    const dispatch = useDispatch();
+
+    const selectCourse = (course) => {
+        dispatch(setCourse(course));
+    }
+
+    console.log("Course");
+    return (
+        <Box className={style.course}>
+            <Typography className={style.textFont}>出題数</Typography>
+            <Button onClick={() => selectCourse(10)} variant="contained" className={style.textFont}>10</Button>    
+            <Button onClick={() => selectCourse(15)} variant="contained" className={style.textFont}>15</Button>
+            <Button onClick={() => selectCourse(20)} variant="contained" className={style.textFont}>20</Button>
+        </Box>
+    );
 }
 
 function Text(){
     const count = useSelector(state => state.count);
     const textNum = useSelector(state => state.textNum);
     const typeTexts = useSelector(state => state.typeTexts);
+    const start = useSelector(state => state.startGame);
     const dispatch = useDispatch();
 
     const style = styles();
@@ -119,7 +164,6 @@ function Text(){
     const [textLen, setLen] = useState("");
     const [textIdx, setTextIdx] = useState(0);
     const [finished, setFinish] = useState(false);
-    const [started, setStart] = useState(false);
     const [missed, setMissed] = useState(false);
     const [loading, setLoading] = useState(true);
     const [correctType, setCorrect] = useState(0);
@@ -130,17 +174,16 @@ function Text(){
         setLoading(() => (false));
     }, [loading]);
 
-    const startGame = (e) => {
+    const setStart = (e) => {
         if (e.which === 32 || e.keyCode === 32) {
-            setStart(true);
+            dispatch(startGame);
         }
         return;
     }
 
     const selectText = () => {
-        const num = 5;
         const randomText = [];
-        for(var i = 0;i < num;i++){
+        for(var i = 0;i < textNum;i++){
             var item = dictionary[Math.floor(Math.random() * dictionary.length)]
             randomText.push(item);
         }
@@ -167,9 +210,9 @@ function Text(){
     }
 
     const checkKey = (e) => {
-        if (started && (e.keyCode === 27 || e.which === 27)) {
+        if (start && (e.keyCode === 27 || e.which === 27)) {
             setLoading(true);
-            setStart(false);
+            dispatch(restartGame);
             return;
         } else if (!finished && (e.key === text[textIdx].toLowerCase() || e.key === text[textIdx])) {
             const newIdx = textIdx + 1;
@@ -212,8 +255,8 @@ function Text(){
         );
     } else {
         return (
-            started ? (
-            <div onKeyDown={(e) => checkKey(e)} tabIndex={0} className={style.inputBox}>
+            start ? (
+            <div onKeyDown={(e) => checkKey(e)} tabIndex={0} className={style.inputBox} cursor="none">
                 <Typography className={style.abbreviation}>
                     {abbreviation }
                 </Typography>
@@ -239,7 +282,8 @@ function Text(){
                         {selectText()}
                     </Typography>
                 ) : (
-                    <div onKeyPress={(e) => startGame(e)} tabIndex={0} className={style.inputBox}>
+                    //<div onKeyPress={(e) => setStart(e)} tabIndex={0} className={style.inputBox}>
+                    <div onClick={() => dispatch(startGame)} tabIndex={0} className={style.start}>
                         <Box paddingTop={"10px"}>
                             <Typography>
                                 Press space key to start
@@ -255,6 +299,7 @@ function Text(){
 function Home() {
     const style = styles();
     const start = useSelector(state => state.startGame);
+    const dispatch = useDispatch();
     console.log(start);
     return (
         <div align="center">
@@ -262,20 +307,18 @@ function Home() {
                 AP TYPING
             </Box>
             <div className={style.back}>
-                <div>
-                    <Board />
-                </div>
-                <div>
-                    <Grid container className={style.gridPosition} >
-                        <Grid className={style.restartButton}>
-                            <Button variant="contained" xs={10} className={style.buttonFont}> Restart </Button>
-                        </Grid>
-                        <Grid className={style.titleButton}>
-                            <Button variant="contained" className={style.buttonFont}> Select Course </Button>
-                        </Grid>
-                    </Grid>
-                </div>
+                <Board />
             </div>
+            <Box className={style.box}>
+                <Grid container className={style.gridPosition} align="center">
+                    <Grid className={style.restartButton}>
+                        <Button onClick={() => dispatch()} variant="contained" xs={10} className={style.buttonFont}> Restart </Button>
+                    </Grid>
+                    <Grid className={style.titleButton}>
+                        <Button onClick={() => dispatch(resetCourse)} variant="contained" className={style.buttonFont}> Select Course </Button>
+                    </Grid>
+                </Grid>
+            </Box>
         </div>
     );
     /*if (!start) {

@@ -7,6 +7,7 @@ const initialState = {
     textNum: 0,
     taskEnd: false,
     startGame: false,
+    selectCourse: false,
 };
 
 const reducer = (state = initialState, action) => {
@@ -30,15 +31,25 @@ const reducer = (state = initialState, action) => {
             return Object.assign({}, state, {
                 startGame: true,
             });
+        case ActionType.restartGame:
+            return Object.assign({}, state, {
+                startGame: false,
+            });
         case ActionType.renderTitle:
             return Object.assign({}, state, {
                 startGame: false,
             });
-        case ActionType.selectTextNum: {
+        case ActionType.selectCourse:
             return Object.assign({}, state, {
                 textNum: action.textNum,
+                selectCourse: true,
+            });
+        case ActionType.resetCourse:
+            return Object.assign({}, state, {
+                textNum: 0,
+                selectCourse: false,
+                startGame: false,
             })
-        }
         default:
             return state;
     }

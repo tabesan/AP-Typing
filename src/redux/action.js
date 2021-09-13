@@ -3,8 +3,10 @@ export const ActionType = {
     setDictionary: 'SET_DICTIONARY',
     taskEnd: "TASK_END",
     startGame: "START_GAME",
+    restartGame: "RESTART_GAME",
     renderTitle: "RENDER_TITLE",
-    selectTextNum: "SELECT_TEXT_NUM",
+    selectCourse: "SELECT_COURSE",
+    resetCourse: "RESET_COURSE",
 };
 
 export function setDictionary(dictionary) {
@@ -14,9 +16,9 @@ export function setDictionary(dictionary) {
     }
 }
 
-export function setTextNum(textNum) {
+export function setCourse(textNum) {
     return {
-        type: ActionType.selectTextNum,
+        type: ActionType.selectCourse,
         textNum: textNum,
     }
 };
@@ -33,6 +35,13 @@ export const startGame = {
     type: ActionType.startGame,
 };
 
+export const restartGame = {
+    type: ActionType.restartGame,
+}
 export const renderTitle = {
     type: ActionType.renderTitle,
+};
+
+export const resetCourse = {
+    type: ActionType.resetCourse,
 };
