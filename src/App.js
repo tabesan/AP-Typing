@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 
 import { useSelector, useDispatch } from 'react-redux';
-import { setDictionary, nextText, startGame, renderTitle, setCourse, resetCourse, restartGame } from './redux/action';
+import { startGame, finish, endLoading, setCourse, resetCourse, restartGame } from './redux/action';
 import { dictionary } from "./dictionary.js";
 import { makeStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
@@ -11,8 +11,7 @@ import Grid from '@material-ui/core/Grid';
 
 const styles = makeStyles(() => ({
     box: {
-        width: "250px",
-        width: "352px",
+        width: "600px",
     },
     start: {
         paddingBottom: "20px",
@@ -37,11 +36,25 @@ const styles = makeStyles(() => ({
     restartButton: {
         position: "relative",
         bottom: "20px",
-        paddingRight: "20px",
+        marginRight: "20px",
+        width: "250px",
+        height: "35px",
+        borderRadius: "0.3em",
+        backgroundColor: "#dcdcdc",
+        textAlign: "center",
+        paddingTop: "8px",
+        cursor: "pointer",
     },
     titleButton: {
         position: "relative",
         bottom: "20px",
+        width: "260px",
+        height: "35px",
+        backgroundColor: "#dcdcdc",
+        borderRadius: "0.3em",
+        textAlign: "center",
+        paddingTop: "8px",
+        cursor: "pointer",
     },
     back: {
         border: "3px solid #4169e1",
@@ -61,7 +74,7 @@ const styles = makeStyles(() => ({
         paddingBottom: "20px",
         marginTop: "15px",
         //marginBottom: "30px",
-        width: "450px",
+        width: "600px",
         height: "40px",
         cursor: "none",
     },
@@ -120,7 +133,6 @@ function Board() {
     const style = styles();
     const courseSelected = useSelector(state => state.selectCourse);
 
-    console.log("selected", courseSelected);
     return (
         <Box>
             {courseSelected ? (
@@ -140,10 +152,10 @@ function Course() {
         dispatch(setCourse(course));
     }
 
-    console.log("Course");
     return (
         <Box className={style.course}>
             <Typography className={style.textFont}>出題数</Typography>
+            <Button onClick={() => selectCourse(5)} variant="contained" className={style.textFont}>5</Button>    
             <Button onClick={() => selectCourse(10)} variant="contained" className={style.textFont}>10</Button>    
             <Button onClick={() => selectCourse(15)} variant="contained" className={style.textFont}>15</Button>
             <Button onClick={() => selectCourse(20)} variant="contained" className={style.textFont}>20</Button>
@@ -152,53 +164,41 @@ function Course() {
 }
 
 function Text(){
-    const count = useSelector(state => state.count);
     const textNum = useSelector(state => state.textNum);
-    const typeTexts = useSelector(state => state.typeTexts);
     const start = useSelector(state => state.startGame);
+    const finished = useSelector(state => state.finished);
+    const loading = useSelector(state => state.loading);
     const dispatch = useDispatch();
 
     const style = styles();
+    const [typeTexts, setTypeTexts] = useState([]);
+    const [count, setCount] = useState(0);
     const [abbreviation, setAbbre] = useState("");
     const [text, setText] = useState("");
     const [textLen, setLen] = useState("");
     const [textIdx, setTextIdx] = useState(0);
-    const [finished, setFinish] = useState(false);
     const [missed, setMissed] = useState(false);
-    const [loading, setLoading] = useState(true);
     const [correctType, setCorrect] = useState(0);
     const [missType, setMissType] = useState(0);
 
-    useEffect(() => {
-        initState();
-        setLoading(() => (false));
-    }, [loading]);
-
-    const setStart = (e) => {
-        if (e.which === 32 || e.keyCode === 32) {
-            dispatch(startGame);
-        }
-        return;
-    }
-
-    const selectText = () => {
+    const initState = () => {
         const randomText = [];
         for(var i = 0;i < textNum;i++){
             var item = dictionary[Math.floor(Math.random() * dictionary.length)]
             randomText.push(item);
         }
-        dispatch(setDictionary(randomText));
-        setLoading(false);
-    }
 
-    const initState = () => {
-        setAbbre(typeTexts[0].abbre);
-        const initText = typeTexts[0].text;
+        setTypeTexts(randomText);
+        setAbbre(randomText[0].abbre);
+        const initText = randomText[0].text;
         setText(initText);
         setLen(initText.length);
         setTextIdx(0);
-        setFinish(false);
         setMissed(false);
+        setCorrect(0);
+        setMissType(0);
+        setCount(0);
+        dispatch(endLoading);
     }
 
     const setNext = (count) => {
@@ -210,21 +210,17 @@ function Text(){
     }
 
     const checkKey = (e) => {
-        if (start && (e.keyCode === 27 || e.which === 27)) {
-            setLoading(true);
-            dispatch(restartGame);
-            return;
-        } else if (!finished && (e.key === text[textIdx].toLowerCase() || e.key === text[textIdx])) {
+        if (!finished && (e.key === text[textIdx].toLowerCase() || e.key === text[textIdx])) {
             const newIdx = textIdx + 1;
             setTextIdx(newIdx);
             setCorrect((correctType) => (correctType + 1));
             if (newIdx === textLen){
-                dispatch(nextText);
                 if (isTaskEnd()) {
-                    setFinish(true);
+                    dispatch(finish);
                     return;
                 }
                 setNext(count + 1);
+                setCount(count + 1);
             }
         } else if (!finished) {
             setMissType((missType) => (missType + 1));
@@ -279,14 +275,13 @@ function Text(){
                 loading ? (
                     <Typography className={style.charBlack}>
                         Loading...
-                        {selectText()}
+                        {initState()}
                     </Typography>
                 ) : (
-                    //<div onKeyPress={(e) => setStart(e)} tabIndex={0} className={style.inputBox}>
                     <div onClick={() => dispatch(startGame)} tabIndex={0} className={style.start}>
                         <Box paddingTop={"10px"}>
                             <Typography>
-                                Press space key to start
+                                Click here to start
                             </Typography>
                         </Box>
                     </div>
@@ -300,7 +295,7 @@ function Home() {
     const style = styles();
     const start = useSelector(state => state.startGame);
     const dispatch = useDispatch();
-    console.log(start);
+
     return (
         <div align="center">
             <Box className={style.title}>
@@ -309,13 +304,13 @@ function Home() {
             <div className={style.back}>
                 <Board />
             </div>
-            <Box className={style.box}>
-                <Grid container className={style.gridPosition} align="center">
-                    <Grid className={style.restartButton}>
-                        <Button onClick={() => dispatch()} variant="contained" xs={10} className={style.buttonFont}> Restart </Button>
+            <Box className={style.box} align="center">
+                <Grid container alignItems="center" justifyContent="center" className={style.gridPosition}>
+                    <Grid item xs={4} className={style.restartButton}>
+                        <Typography onClick={() => dispatch(restartGame)} className={style.buttonFont}> Restart </Typography>
                     </Grid>
-                    <Grid className={style.titleButton}>
-                        <Button onClick={() => dispatch(resetCourse)} variant="contained" className={style.buttonFont}> Select Course </Button>
+                    <Grid item xs={4} className={style.titleButton}>
+                        <Typography onClick={() => dispatch(resetCourse)} className={style.buttonFont}> Select Course </Typography>
                     </Grid>
                 </Grid>
             </Box>

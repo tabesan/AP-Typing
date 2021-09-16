@@ -8,21 +8,12 @@ const initialState = {
     taskEnd: false,
     startGame: false,
     selectCourse: false,
+    finished: false,
+    loading: true,
 };
 
 const reducer = (state = initialState, action) => {
     switch (action.type) {
-        case ActionType.setDictionary:
-            return Object.assign({}, state, {
-                typeTexts: action.dictionary,
-                count: 0,
-                textNum: action.dictionary.length,
-                taskEnd: false,
-            });
-        case ActionType.nextText:
-            return Object.assign({}, state, {
-                count: state.count + 1,
-            });
         case ActionType.taskEnd:
             return Object.assign({}, state, {
                 taskEnd: true,
@@ -34,6 +25,8 @@ const reducer = (state = initialState, action) => {
         case ActionType.restartGame:
             return Object.assign({}, state, {
                 startGame: false,
+                finished: false,
+                loading: true,
             });
         case ActionType.renderTitle:
             return Object.assign({}, state, {
@@ -43,12 +36,22 @@ const reducer = (state = initialState, action) => {
             return Object.assign({}, state, {
                 textNum: action.textNum,
                 selectCourse: true,
+                loading: true,
             });
         case ActionType.resetCourse:
             return Object.assign({}, state, {
                 textNum: 0,
                 selectCourse: false,
                 startGame: false,
+                finished: false,
+            });
+        case ActionType.finish:
+            return Object.assign({}, state, {
+                finished: true,
+            });
+        case ActionType.endLoading: 
+            return Object.assign({}, state, {
+                loading: false,
             })
         default:
             return state;
